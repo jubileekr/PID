@@ -1,0 +1,27 @@
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+EasyDict = "1.7"
+shapely = "*"
+Cython = "*"
+scipy = "*"
+numpy = "*"
+pandas = "*"
+pyyaml = "*"
+json_tricks = "*"
+scikit-image = "*"
+yacs = ">=0.1.5"
+tensorboardX = ">=1.6"
+tqdm = "*"
+ninja = "*"
+mmcv-full ="*"
+torch = { file = "/app/whl/torch-1.13.1+cu116-cp38-cp38-linux_x86_64.whl" }
+torchaudio = { file = "/app/whl/torchaudio-0.13.1+cu116-cp38-cp38-linux_x86_64.whl" }
+torchvision = { file = "/app/whl/torchvision-0.14.1+cu116-cp38-cp38-linux_x86_64.whl" }
+mmdet = "*"
+mmcv = "*"
+tensorboard = "^2.12.2"
