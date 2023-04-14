@@ -32,7 +32,7 @@ def parse_args():
     
     parser.add_argument('--cfg',
                         help='experiment configure file name',
-                        default="configs/cityscapes/pidnet_small_cityscapes.yaml",
+                        default="configs/tooth/small-dof.yaml",
                         type=str)
     parser.add_argument('--seed', type=int, default=304)    
     parser.add_argument('opts',
@@ -76,7 +76,9 @@ def main():
         print("The gpu numbers do not match!")
         return 0
     
-    imgnet = 'imagenet' in config.MODEL.PRETRAINED
+    imgnet = 'pidnet_nano' in config.MODEL.PRETRAINED
+    print(config.MODEL)
+    print(imgnet)
     model = models.pidnet.get_seg_model(config, imgnet_pretrained=imgnet)
  
     batch_size = config.TRAIN.BATCH_SIZE_PER_GPU * len(gpus)
@@ -211,7 +213,7 @@ def main():
 
     writer_dict['writer'].close()
     end = timeit.default_timer()
-    logger.info('Hours: %d' % np.int((end-start)/3600))
+    logger.info('Hours: %d' % np.int32((end-start)/3600))
     logger.info('Done')
 
 if __name__ == '__main__':

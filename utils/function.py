@@ -34,12 +34,12 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
     global_steps = writer_dict['train_global_steps']
 
     for i_iter, batch in enumerate(trainloader, 0):
-        # images, labels, bd_gts, _, _ = batch
+        #images, labels, bd_gts, _, _ = batch
         images, labels, bd_gts, _, img_names = batch
         images = images.cuda()
         labels = labels.long().cuda()
         bd_gts = bd_gts.float().cuda()
-
+        
         if config.MODEL.NAME == 'pidnet_pico':
             losses, _, acc, loss_list = model(images, labels)
         else:
@@ -77,7 +77,6 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
     writer.add_scalar('train_loss', ave_loss.average(), global_steps)
     writer_dict['train_global_steps'] = global_steps + 1
 
-
 def validate(config, testloader, model, writer_dict):
     model.eval()
     ave_loss = AverageMeter()
@@ -96,9 +95,7 @@ def validate(config, testloader, model, writer_dict):
                 losses, pred, _, _ = model(image, label)
             else:
                 losses, pred, _, _ = model(image, label, bd_gts)
-            # print(pred[0].size())
-            # print(pred[1].size())
-            # exit(0)
+
             if not isinstance(pred, (list, tuple)):
                 pred = [pred]
             for i, x in enumerate(pred):
@@ -142,7 +139,6 @@ def testval(config, test_dataset, testloader, model,
             sv_dir='./', sv_pred=False):
     model.eval()
     confusion_matrix = np.zeros((config.DATASET.NUM_CLASSES, config.DATASET.NUM_CLASSES))
-    IoUs = []
     with torch.no_grad():
         for index, batch in enumerate(tqdm(testloader)):
             image, label, _, _, name = batch
@@ -161,17 +157,6 @@ def testval(config, test_dataset, testloader, model,
                 size,
                 config.DATASET.NUM_CLASSES,
                 config.TRAIN.IGNORE_LABEL)
-            pos = confusion_matrix.sum(1)
-            res = confusion_matrix.sum(0)
-            tp = np.diag(confusion_matrix)
-            # IoU = (tp / np.maximum(1.0, pos + res - tp)).mean()
-            IoU = (tp / np.maximum(1.0, pos + res - tp))
-            acc = tp.sum()/pos.sum()
-            IoUs.append(IoU)
-            # print(f"Image {name}'s mean IoU: {IoU:.4f}")
-            print(f"Image {name}'s IoU: {IoU}")
-            print(f"Image {name}'s mean IoU: {IoU.mean():.4f}")
-            print(f"Image {name}'s accuracy: {acc:.4f}")
 
             if sv_pred:
                 sv_path = os.path.join(sv_dir, 'val_results')
@@ -204,7 +189,6 @@ def test(config, test_dataset, testloader, model,
     model.eval()
     with torch.no_grad():
         for _, batch in enumerate(tqdm(testloader)):
-            # image, size, name = batch
             image, size, _, _, name = batch
             size = size[0]
             pred = test_dataset.single_scale_inference(
@@ -212,12 +196,12 @@ def test(config, test_dataset, testloader, model,
                 model,
                 image.cuda())
 
-            # if pred.size()[-2] != size[0] or pred.size()[-1] != size[1]:
-            #     pred = F.interpolate(
-            #         pred, size[-2:],
-            #         mode='bilinear', align_corners=config.MODEL.ALIGN_CORNERS
-            #     )
-
+#            if pred.size()[-2] != size[0] or pred.size()[-1] != size[1]:
+#                pred = F.interpolate(
+#                    pred, size[-2:],
+#                    mode='bilinear', align_corners=config.MODEL.ALIGN_CORNERS
+#                )
+                
             if sv_pred:
                 sv_path = os.path.join(sv_dir,'test_results')
                 if not os.path.exists(sv_path):

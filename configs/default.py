@@ -27,8 +27,8 @@ _C.CUDNN.ENABLED = True
 
 # common params for NETWORK
 _C.MODEL = CN()
-_C.MODEL.NAME = 'pidnet_s'
-_C.MODEL.PRETRAINED = 'pretrained_models/imagenet/PIDNet_S_ImageNet.pth.tar'
+_C.MODEL.NAME = 'pidnet_nano'
+_C.MODEL.PRETRAINED = '/root/PIDNet/pretrained_models/imagenet/PIDNet_S_ImageNet.pth.tar'
 _C.MODEL.ALIGN_CORNERS = True
 _C.MODEL.NUM_OUTPUTS = 2
 
@@ -44,16 +44,16 @@ _C.LOSS.SB_WEIGHTS = 0.5
 # DATASET related params
 _C.DATASET = CN()
 _C.DATASET.ROOT = 'data/'
-_C.DATASET.DATASET = 'cityscapes'
-_C.DATASET.NUM_CLASSES = 19
-_C.DATASET.TRAIN_SET = 'list/cityscapes/train.lst'
+_C.DATASET.DATASET = 'tooth'
+_C.DATASET.NUM_CLASSES = 2
+_C.DATASET.TRAIN_SET = ''
 _C.DATASET.EXTRA_TRAIN_SET = ''
-_C.DATASET.TEST_SET = 'list/cityscapes/val.lst'
+_C.DATASET.TEST_SET = ''
 
 # training
 _C.TRAIN = CN()
-_C.TRAIN.IMAGE_SIZE = [1024, 1024]  # width * height
-_C.TRAIN.BASE_SIZE = 2048
+_C.TRAIN.IMAGE_SIZE = [320, 384]
+_C.TRAIN.BASE_SIZE = 384
 _C.TRAIN.FLIP = True
 _C.TRAIN.MULTI_SCALE = True
 _C.TRAIN.SCALE_FACTOR = 16
@@ -68,19 +68,19 @@ _C.TRAIN.NESTEROV = False
 _C.TRAIN.IGNORE_LABEL = -1
 
 _C.TRAIN.BEGIN_EPOCH = 0
-_C.TRAIN.END_EPOCH = 484
+_C.TRAIN.END_EPOCH = 100
 _C.TRAIN.EXTRA_EPOCH = 0
 
 _C.TRAIN.RESUME = False
 
-_C.TRAIN.BATCH_SIZE_PER_GPU = 32
+_C.TRAIN.BATCH_SIZE_PER_GPU = 6
 _C.TRAIN.SHUFFLE = True
 
 # testing
 _C.TEST = CN()
-_C.TEST.IMAGE_SIZE = [2048, 1024]  # width * height
-_C.TEST.BASE_SIZE = 2048
-_C.TEST.BATCH_SIZE_PER_GPU = 32
+_C.TEST.IMAGE_SIZE = [320, 384]
+_C.TEST.BASE_SIZE = 384
+_C.TEST.BATCH_SIZE_PER_GPU = 6 
 _C.TEST.MODEL_FILE = ''
 _C.TEST.FLIP_TEST = False
 _C.TEST.MULTI_SCALE = False
