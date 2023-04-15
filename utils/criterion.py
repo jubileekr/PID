@@ -55,7 +55,6 @@ class OhemCrossEntropy(nn.Module):
 
     def _ce_forward(self, score, target):
 
-
         loss = self.criterion(score, target)
 
         return loss

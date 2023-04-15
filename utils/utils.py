@@ -35,9 +35,9 @@ class FullModel(nn.Module):
     return acc
 
   def forward(self, inputs, labels, bd_gt, *args, **kwargs):
-    
+
     outputs = self.model(inputs, *args, **kwargs)
-    
+
     h, w = labels.size(1), labels.size(2)
     ph, pw = outputs[0].size(2), outputs[0].size(3)
     if ph != h or pw != w:
@@ -45,26 +45,49 @@ class FullModel(nn.Module):
             outputs[i] = F.interpolate(outputs[i], size=(
                 h, w), mode='bilinear', align_corners=config.MODEL.ALIGN_CORNERS)
 
+    # print(f"output 0: {torch.sum(outputs[0])}")
+    # print(f"output 1: {torch.sum(outputs[1])}")
+    # print(f"output 2: {torch.sum(outputs[2])}")
+    # exit(0)
     acc  = self.pixel_acc(outputs[-2], labels)
     loss_s = self.sem_loss(outputs[:-1], labels)
     loss_b = self.bd_loss(outputs[-1], bd_gt)
 
     filler = torch.ones_like(labels) * config.TRAIN.IGNORE_LABEL
-
-    try:
-        bd_label = torch.where(torch.sigmoid(outputs[-1][:,0,:,:])>0.7, labels, filler)
-        loss_sb = self.sem_loss([outputs[-2]], bd_label)
-    except:
-        loss_sb = self.sem_loss([outputs[-2]], labels)
-
-
-
-    #bd_label = torch.where(F.sigmoid(outputs[-1][:,0,:,:])>0.8, labels, filler)
-    #loss_sb = self.sem_loss(outputs[-2], bd_label)
-
+    bd_label = torch.where(F.sigmoid(outputs[-1][:,0,:,:])>0.8, labels, filler)
+    loss_sb = self.sem_loss(outputs[-2], bd_label)
     loss = loss_s + loss_b + loss_sb
 
     return torch.unsqueeze(loss,0), outputs[:-1], acc, [loss_s, loss_b]
+
+
+class FullModelOneBranch(nn.Module):
+
+    def __init__(self, model, sem_loss):
+        super(FullModelOneBranch, self).__init__()
+        self.model = model
+        self.sem_loss = sem_loss
+
+    def pixel_acc(self, pred, label):
+        _, preds = torch.max(pred, dim=1)
+        valid = (label >= 0).long()
+        acc_sum = torch.sum(valid * (preds == label).long())
+        pixel_sum = torch.sum(valid)
+        acc = acc_sum.float() / (pixel_sum.float() + 1e-10)
+        return acc
+
+    def forward(self, inputs, labels):
+        out = self.model(inputs)
+        h, w = labels.size(1), labels.size(2)
+        ph, pw = out.size(2), out.size(3)
+        if ph != h or pw != w:
+            out = F.interpolate(out, size=(h, w), mode='bilinear',
+                                align_corners=config.MODEL.ALIGN_CORNERS)
+
+        acc = self.pixel_acc(out, labels)
+        loss_s = self.sem_loss(out, labels)
+
+        return torch.unsqueeze(loss_s, 0), out, acc, [loss_s, torch.zeros(1)]
 
 
 class AverageMeter(object):

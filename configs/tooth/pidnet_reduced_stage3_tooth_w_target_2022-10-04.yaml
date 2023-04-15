@@ -9,14 +9,14 @@ WORKERS: 6
 PRINT_FREQ: 10
 
 DATASET:
-  DATASET: 'tooth'
-  ROOT: '/root/PIDNet-yoon/data/tooth/'
-  TEST_SET: "test/annotations/instances_default.json"
+  DATASET: tooth
+  ROOT: '/nfs/DataArchive/tooth_segmentation/released/2022-10-04_released'
+  TEST_SET: 'test/annotations/instances_default.json'
   TRAIN_SET: 'train/annotations/instances_default.json'
   NUM_CLASSES: 2
 MODEL:
-  NAME: pidnet_pico
-  NUM_OUTPUTS: 1
+  NAME: pidnet_reduced_stage3
+  NUM_OUTPUTS: 2
   PRETRAINED: "pretrained_models/imagenet/PIDNet_S_ImageNet.pth.tar"
 LOSS:
   USE_OHEM: true
@@ -27,12 +27,11 @@ LOSS:
 TRAIN:
   IMAGE_SIZE:
   - 384
-  - 320
+  - 384
   BASE_SIZE: 384
   BATCH_SIZE_PER_GPU: 6
   SHUFFLE: true
   BEGIN_EPOCH: 0
-#  END_EPOCH: 100
   END_EPOCH: 50
 #  END_EPOCH: 484
   RESUME: false
@@ -48,10 +47,10 @@ TRAIN:
 TEST:
   IMAGE_SIZE:
   - 384
-  - 320
+  - 384
   BASE_SIZE: 384
   BATCH_SIZE_PER_GPU: 6
   FLIP_TEST: false
   MULTI_SCALE: false
-  MODEL_FILE: 'scripted_pidnet_model.pt'
+  MODEL_FILE: './output/tooth/pidnet_small_tooth_w_target_2022-10-04/best.pt'
   OUTPUT_INDEX: 1

@@ -13,8 +13,13 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 
-mean = [0.485, 0.456, 0.406]
-std = [0.229, 0.224, 0.225]
+#mean = [0.485, 0.456, 0.406]
+#std = [0.229, 0.224, 0.225]
+#mean = [0.389, 0.389, 0.389]
+#std = [0.159, 0.159, 0.159]
+
+mean = [0.388, 0.388, 0.388]
+std = [0.181, 0.181, 0.181]
 
 color_map = [(128, 64,128),
              (244, 35,232),
@@ -39,12 +44,12 @@ color_map = [(128, 64,128),
 def parse_args():
     parser = argparse.ArgumentParser(description='Custom Input')
     
-    parser.add_argument('--a', help='pidnet-n, pidnet-m or pidnet-l', default='pidnet-n', type=str)
-    parser.add_argument('--c', help='cityscapes pretrained or not', type=bool, default=False)
-    parser.add_argument('--p', help='dir for pretrained model', default='/root/PIDNet/output/tooth/nano-dof/best.pt')
-    parser.add_argument('--r', help='root or dir for input images', default='/app/Downloads/22.12.16_textureBayer/1u/', type=str)
+    parser.add_argument('--a', help='pidnet-s, pidnet-m or pidnet-l', default='pidnet-pico', type=str)
+    parser.add_argument('--c', help='cityscapes pretrained or not', type=bool, default=True)
+ #   parser.add_argument('--p', help='dir for pretrained model', default='/root/PIDNet-yoon/scripted_pidnet_model.pt', type=str)
+    parser.add_argument('--p', help='dir for pretrained model', default='output/tooth/pidp/best.pt', type=str)
+    parser.add_argument('--r', help='root or dir for input images', default='/app/datasets/22.12.16_textureBayer/2u/', type=str)
     parser.add_argument('--t', help='the format of input images (.jpg, .png, ...)', default='.bmp', type=str)     
-
     args = parser.parse_args()
 
     return args
@@ -73,14 +78,14 @@ def load_pretrained(model, pretrained):
 
 if __name__ == '__main__':
     args = parse_args()
+    print(args)
     images_list = glob.glob(args.r+'*'+args.t)
     sv_path = args.r+'outputs/'
     
     #model = models.pidnet.get_pred_model(args.a, 19 if args.c else 11)
-    model = models.pidnet.get_pred_model(args.a, 4)
+    model = models.pidnet.get_pred_model(args.a, 2)
     model = load_pretrained(model, args.p).cuda()
     model.eval()
-
     with torch.no_grad():
         for img_path in images_list:
             img_name = img_path.split("/")[-1]
@@ -102,8 +107,6 @@ if __name__ == '__main__':
             
             if not os.path.exists(sv_path):
                 os.mkdir(sv_path)
-            #sv_img.save(sv_path+img_name)
-                
             sv_img.save(sv_path+img_name)
             
             

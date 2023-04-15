@@ -17,7 +17,7 @@ import torch.backends.cudnn as cudnn
 import torch.optim
 from tensorboardX import SummaryWriter
 
-from mmdet.datasets.samplers import InfiniteBatchSampler, InfiniteGroupBatchSampler
+#from mmdet.datasets.samplers import InfiniteBatchSampler, InfiniteGroupBatchSampler
 
 import _init_paths
 import models
@@ -26,7 +26,7 @@ from configs import config
 from configs import update_config
 from utils.criterion import CrossEntropy, OhemCrossEntropy, BondaryLoss
 from utils.function import train, validate
-from utils.utils import create_logger, FullModel
+from utils.utils import create_logger, FullModel, FullModelOneBranch
 
 
 def parse_args():
@@ -34,7 +34,7 @@ def parse_args():
     
     parser.add_argument('--cfg',
                         help='experiment configure file name',
-                        default="configs/cityscapes/pidnet_small_cityscapes.yaml",
+                        default="/root/PIDNet-yoon/configs/tooth/pidnet_pico_tooth_w_target_230410.yaml",
                         type=str)
     parser.add_argument('--seed', type=int, default=304)    
     parser.add_argument('opts',
@@ -79,7 +79,7 @@ def main():
         return 0
     
     imgnet = 'imagenet' in config.MODEL.PRETRAINED
-    model = models.pidnet.get_seg_model(config, imgnet_pretrained=imgnet)
+    model = models.pidnet_for_script.get_seg_model(config, imgnet_pretrained=imgnet)
  
     batch_size = config.TRAIN.BATCH_SIZE_PER_GPU * len(gpus)
     # prepare data
@@ -103,17 +103,15 @@ def main():
         pin_memory=False,
         drop_last=True)
 
-    # # train_batch_sampler = InfiniteBatchSampler(
-    # train_batch_sampler = InfiniteGroupBatchSampler(
-    #     train_dataset, batch_size, 1, 0
-    # )
-    #
-    # trainloader = torch.utils.data.DataLoader(
-    #     train_dataset,
-    #     batch_sampler=train_batch_sampler,
-    #     num_workers=config.WORKERS,
-    #     pin_memory=False,
-    # )
+    #train_batch_sampler = InfiniteBatchSampler(
+    #train_batch_sampler = InfiniteGroupBatchSampler(
+    #    train_dataset, batch_size, 1, 0)
+    
+    #trainloader = torch.utils.data.DataLoader(
+    #    train_dataset,
+    #    batch_sampler=train_batch_sampler,
+    #    num_workers=config.WORKERS,
+    #    pin_memory=False)
 
     test_size = (config.TEST.IMAGE_SIZE[1], config.TEST.IMAGE_SIZE[0])
     test_dataset = eval('datasets.'+config.DATASET.DATASET)(
@@ -144,8 +142,11 @@ def main():
                                     weight=train_dataset.class_weights)
 
     bd_criterion = BondaryLoss()
-    
-    model = FullModel(model, sem_criterion, bd_criterion)
+
+    if config.MODEL.NAME == 'pidnet_pico':
+        model = FullModelOneBranch(model, sem_criterion)
+    else:
+        model = FullModel(model, sem_criterion, bd_criterion)
     model = nn.DataParallel(model, device_ids=gpus).cuda()
 
     # optimizer
@@ -224,7 +225,7 @@ def main():
 
     writer_dict['writer'].close()
     end = timeit.default_timer()
-    logger.info('Hours: %d' % np.int((end-start)/3600))
+    logger.info('Hours: %d' % np.int32((end-start)/3600))
     logger.info('Done')
 
 if __name__ == '__main__':

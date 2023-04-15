@@ -29,7 +29,11 @@ def parse_args():
     
     parser.add_argument('--cfg',
                         help='experiment configure file name',
-                        default="experiments/cityscapes/pidnet_small_cityscapes.yaml",
+                        default="/root/PIDNet-yoon/configs/tooth/pidnet_pico_tooth_w_target_230410.yaml",
+                        type=str)
+    parser.add_argument('--model',
+                        help='model file name',
+                        default="/root/PIDNet-yoon/scripted_pidnet_model.pt",
                         type=str)
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
@@ -56,26 +60,8 @@ def main():
     cudnn.enabled = config.CUDNN.ENABLED
 
     # build model
-    model = model = models.pidnet.get_seg_model(config, imgnet_pretrained=True)
-
-    if config.TEST.MODEL_FILE:
-        model_state_file = config.TEST.MODEL_FILE
-    else:
-        model_state_file = os.path.join(final_output_dir, 'best.pt')      
-   
-    logger.info('=> loading model from {}'.format(model_state_file))
-        
-    pretrained_dict = torch.load(model_state_file)
-    if 'state_dict' in pretrained_dict:
-        pretrained_dict = pretrained_dict['state_dict']
-    model_dict = model.state_dict()
-    pretrained_dict = {k[6:]: v for k, v in pretrained_dict.items()
-                        if k[6:] in model_dict.keys()}
-    for k, _ in pretrained_dict.items():
-        logger.info(
-            '=> loading {} from pretrained model'.format(k))
-    model_dict.update(pretrained_dict)
-    model.load_state_dict(model_dict)
+    model = torch.jit.load(args.model)
+    ##model = torch.load(args.model)
 
     model = model.cuda()
 
@@ -99,6 +85,7 @@ def main():
         pin_memory=True)
     
     start = timeit.default_timer()
+
     
     
     if ('test' in config.DATASET.TEST_SET) and ('city' in config.DATASET.DATASET):
@@ -109,6 +96,7 @@ def main():
              sv_dir=final_output_dir)
 
     elif ('test' in config.DATASET.TEST_SET) and ('tooth' in config.DATASET.DATASET):
+        print("testing tooth")
         test(config,
              test_dataset,
              testloader,
@@ -129,7 +117,7 @@ def main():
 
 
     end = timeit.default_timer()
-    logger.info('Mins: %d' % np.int((end-start)/60))
+    logger.info('Mins: %d' % np.int32((end-start)/60))
     logger.info('Done')
 
 
